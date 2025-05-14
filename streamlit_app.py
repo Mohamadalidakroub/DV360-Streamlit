@@ -1,9 +1,8 @@
 import streamlit as st
 from datetime import date, datetime
 import json
-from PIL import Image
 
-# Page setup and styling
+# ----- Page Setup -----
 st.set_page_config(page_title="DV360 Campaign Builder", layout="centered")
 
 st.markdown("""
@@ -21,20 +20,17 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# DV360 logo and title
-logo = Image.open("dv360_logo.png")
-st.image(logo, width=180)
-st.markdown("## DV360 Campaign Builder")
-st.caption("A mock tool that mirrors the Display & Video 360 campaign creation flow.")
+st.markdown("## 🟢 DV360 Campaign Builder")
+st.caption("A mock tool that mirrors the DV360 campaign creation workflow.")
 
-# Partner & Advertiser
-st.markdown("### Partner & Advertiser Setup")
+# ----- Partner & Advertiser -----
+st.markdown("### 🟢 Partner & Advertiser Setup")
 partner_id = st.text_input("Partner ID", placeholder="e.g. 123456")
 advertiser_name = st.text_input("Advertiser Name", placeholder="e.g. Coca-Cola MENA")
 advertiser_status = st.selectbox("Advertiser Status", ["ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_INACTIVE"])
 
-# Campaign
-st.markdown("### Campaign Setup")
+# ----- Campaign -----
+st.markdown("### 🟢 Campaign Setup")
 campaign_name = st.text_input("Campaign Name", placeholder="e.g. Awareness Ramadan")
 campaign_status = st.selectbox("Campaign Status", ["ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_DRAFT"])
 goal_type = st.selectbox("Campaign Goal Type", ["BRAND_AWARENESS", "INCREASE_REACH", "DRIVE_ONLINE_ACTIONS"])
@@ -44,8 +40,8 @@ frequency_cap = st.number_input("Max Impressions per Day", min_value=1, value=3)
 campaign_budget_usd = st.number_input("Total Campaign Budget (USD)", step=100.0)
 campaign_budget_micros = int(campaign_budget_usd * 1_000_000)
 
-# Insertion Order
-st.markdown("### Insertion Order Setup")
+# ----- Insertion Order -----
+st.markdown("### 🟢 Insertion Order Setup")
 io_name = st.text_input("Insertion Order Name", placeholder="e.g. IO - May Flight")
 io_status = st.selectbox("Insertion Order Status", ["ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_DRAFT"])
 io_start_date = st.date_input("IO Start Date", value=start_date)
@@ -56,8 +52,8 @@ pacing_type = st.selectbox("Pacing Type", ["PACING_TYPE_EVEN", "PACING_TYPE_AHEA
 daily_pacing_usd = st.number_input("Daily Max Spend (USD)", step=10.0)
 daily_pacing_micros = int(daily_pacing_usd * 1_000_000)
 
-# Line Item
-st.markdown("### Line Item Setup")
+# ----- Line Item -----
+st.markdown("### 🟢 Line Item Setup")
 li_name = st.text_input("Line Item Name", placeholder="e.g. Video Line Item 1")
 li_type = st.selectbox("Line Item Type", ["LINE_ITEM_TYPE_DISPLAY_DEFAULT", "LINE_ITEM_TYPE_VIDEO_DEFAULT"])
 li_status = st.selectbox("Line Item Status", ["ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_DRAFT"])
@@ -68,20 +64,20 @@ li_budget_micros = int(li_budget_usd * 1_000_000)
 bid_usd = st.number_input("Bid Amount (USD)", step=0.1)
 bid_micros = int(bid_usd * 1_000_000)
 
-# Targeting
-st.markdown("### Targeting Options")
+# ----- Targeting -----
+st.markdown("### 🟢 Targeting Options")
 geo = st.text_input("Geo Locations (comma-separated country codes)", "SA,AE")
 device = st.text_input("Devices (comma-separated)", "Mobile,Desktop")
 language = st.text_input("Languages (comma-separated)", "en,ar")
 
-# Creative
-st.markdown("### Creative Info")
+# ----- Creative -----
+st.markdown("### 🟢 Creative Info")
 creative_name = st.text_input("Creative Name")
 youtube_video_id = st.text_input("YouTube Video ID (e.g. dQw4w9WgXcQ)")
 landing_page_url = st.text_input("Landing Page URL (e.g. https://www.brand.com)")
 
-# Submit
-if st.button("Simulate & Download Payload"):
+# ----- Submit -----
+if st.button("✅ Simulate & Download Payload"):
     payload = {
         "partner_id": partner_id.strip(),
         "advertiser": {
