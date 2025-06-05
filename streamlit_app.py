@@ -1,171 +1,122 @@
 import streamlit as st
-from datetime import date, datetime
-import json
+import pandas as pd
 
-# ----- Page Setup -----
-st.set_page_config(page_title="DV360 Campaign Builder", layout="centered")
+# Initialize session state
+if "io_data" not in st.session_state: st.session_state.io_data = []
+if "li_data" not in st.session_state: st.session_state.li_data = []
+if "adgroup_data" not in st.session_state: st.session_state.adgroup_data = []
+if "ad_data" not in st.session_state: st.session_state.ad_data = []
 
-st.markdown("""
-    <style>
-        h1, h2, h3 {
-            color: #0F9D58 !important;
-        }
-        .stButton>button {
-            background-color: #0F9D58;
-            color: white;
-        }
-        .block-container {
-            padding-top: 2rem;
-        }
-    </style>
-""", unsafe_allow_html=True)
+st.title("DV360 SDF Builder")
 
-st.markdown("## 🟢 DV360 Campaign Builder")
-st.caption("A mock tool that mirrors the DV360 campaign creation workflow.")
+tabs = st.tabs(["Insertion Order", "Line Item", "Ad Group", "Ad"])
 
-# ----- Partner & Advertiser -----
-st.markdown("### 🟢 Partner & Advertiser Setup")
-partner_id = st.text_input("Partner ID", placeholder="e.g. 123456")
-advertiser_name = st.text_input("Advertiser Name", placeholder="e.g. Coca-Cola MENA")
-advertiser_status = st.selectbox("Advertiser Status", ["ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_INACTIVE"])
+# --- Insertion Order Tab ---
+with tabs[0]:
+    with st.form("io_form"):
+        st.subheader("Insertion Order")
+        io_id = st.text_input("IO ID (Leave blank for new)")
+        campaign_id = st.text_input("Campaign ID")
+        name = st.text_input("Insertion Order Name")
+        status = st.selectbox("Status", ["Active", "Paused", "Draft"])
+        pacing = st.selectbox("Pacing", ["ASAP", "Even"])
+        budget_type = st.selectbox("Budget Type", ["Fixed", "Unlimited"])
+        pacing_rate = st.text_input("Pacing Rate")
+        pacing_amount = st.text_input("Pacing Amount")
 
-# ----- Campaign -----
-st.markdown("### 🟢 Campaign Setup")
-campaign_name = st.text_input("Campaign Name", placeholder="e.g. Awareness Ramadan")
-campaign_status = st.selectbox("Campaign Status", ["ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_DRAFT"])
-goal_type = st.selectbox("Campaign Goal Type", ["BRAND_AWARENESS", "INCREASE_REACH", "DRIVE_ONLINE_ACTIONS"])
-start_date = st.date_input("Campaign Start Date", value=date.today())
-end_date = st.date_input("Campaign End Date", value=date.today())
-frequency_cap = st.number_input("Max Impressions per Day", min_value=1, value=3)
-campaign_budget_usd = st.number_input("Total Campaign Budget (USD)", step=100.0)
-campaign_budget_micros = int(campaign_budget_usd * 1_000_000)
+        submitted = st.form_submit_button("Add Insertion Order")
+        if submitted:
+            st.session_state.io_data.append({
+                "Io Id": io_id,
+                "Campaign Id": campaign_id,
+                "Name": name,
+                "Status": status,
+                "Pacing": pacing,
+                "Budget Type": budget_type,
+                "Pacing Rate": pacing_rate,
+                "Pacing Amount": pacing_amount
+            })
+            st.success("Insertion Order added!")
 
-# ----- Insertion Order -----
-st.markdown("### 🟢 Insertion Order Setup")
-io_name = st.text_input("Insertion Order Name", placeholder="e.g. IO - May Flight")
-io_status = st.selectbox("Insertion Order Status", ["ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_DRAFT"])
-io_start_date = st.date_input("IO Start Date", value=start_date)
-io_end_date = st.date_input("IO End Date", value=end_date)
-io_budget_usd = st.number_input("IO Budget (USD)", step=100.0)
-io_budget_micros = int(io_budget_usd * 1_000_000)
-pacing_type = st.selectbox("Pacing Type", ["PACING_TYPE_EVEN", "PACING_TYPE_AHEAD", "PACING_TYPE_AS_FAST_AS_POSSIBLE"])
-daily_pacing_usd = st.number_input("Daily Max Spend (USD)", step=10.0)
-daily_pacing_micros = int(daily_pacing_usd * 1_000_000)
+    if st.session_state.io_data:
+        st.dataframe(pd.DataFrame(st.session_state.io_data))
+        csv = pd.DataFrame(st.session_state.io_data).to_csv(index=False).encode('utf-8')
+        st.download_button("Download IO CSV", csv, "InsertionOrder.csv", "text/csv")
 
-# ----- Line Item -----
-st.markdown("### 🟢 Line Item Setup")
-li_name = st.text_input("Line Item Name", placeholder="e.g. Video Line Item 1")
-li_type = st.selectbox("Line Item Type", ["LINE_ITEM_TYPE_DISPLAY_DEFAULT", "LINE_ITEM_TYPE_VIDEO_DEFAULT"])
-li_status = st.selectbox("Line Item Status", ["ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_DRAFT"])
-li_start_date = st.date_input("Line Item Start Date", value=io_start_date)
-li_end_date = st.date_input("Line Item End Date", value=io_end_date)
-li_budget_usd = st.number_input("Line Item Budget (USD)", step=100.0)
-li_budget_micros = int(li_budget_usd * 1_000_000)
-bid_usd = st.number_input("Bid Amount (USD)", step=0.1)
-bid_micros = int(bid_usd * 1_000_000)
+# --- Line Item Tab ---
+with tabs[1]:
+    with st.form("li_form"):
+        st.subheader("Line Item")
+        li_id = st.text_input("Line Item ID")
+        io_id = st.text_input("IO ID")
+        li_name = st.text_input("Line Item Name")
+        li_type = st.selectbox("Line Item Type", ["TrueView In-Stream", "Display", "Bumper", "App Install"])
+        bid_strategy = st.text_input("Bid Strategy")
+        budget = st.text_input("Budget")
 
-# ----- Targeting -----
-st.markdown("### 🟢 Targeting Options")
-geo = st.text_input("Geo Locations (comma-separated country codes)", "SA,AE")
-device = st.text_input("Devices (comma-separated)", "Mobile,Desktop")
-language = st.text_input("Languages (comma-separated)", "en,ar")
+        submitted = st.form_submit_button("Add Line Item")
+        if submitted:
+            st.session_state.li_data.append({
+                "Line Item Id": li_id,
+                "IO Id": io_id,
+                "Line Item Name": li_name,
+                "Type": li_type,
+                "Bid Strategy": bid_strategy,
+                "Budget": budget
+            })
+            st.success("Line Item added!")
 
-# ----- Creative -----
-st.markdown("### 🟢 Creative Info")
-creative_name = st.text_input("Creative Name")
-youtube_video_id = st.text_input("YouTube Video ID (e.g. dQw4w9WgXcQ)")
-landing_page_url = st.text_input("Landing Page URL (e.g. https://www.brand.com)")
+    if st.session_state.li_data:
+        st.dataframe(pd.DataFrame(st.session_state.li_data))
+        csv = pd.DataFrame(st.session_state.li_data).to_csv(index=False).encode('utf-8')
+        st.download_button("Download LI CSV", csv, "LineItem.csv", "text/csv")
 
-# ----- Submit -----
-if st.button("✅ Simulate & Download Payload"):
-    payload = {
-        "partner_id": partner_id.strip(),
-        "advertiser": {
-            "displayName": advertiser_name.strip(),
-            "entityStatus": advertiser_status
-        },
-        "campaign": {
-            "displayName": campaign_name.strip(),
-            "entityStatus": campaign_status,
-            "campaignGoal": {
-                "campaignGoalType": goal_type
-            },
-            "flight": {
-                "plannedStartDate": str(start_date),
-                "plannedEndDate": str(end_date)
-            },
-            "frequencyCap": {
-                "maxImpressions": int(frequency_cap),
-                "timeUnit": "TIME_UNIT_DAYS",
-                "timeUnitCount": 1
-            },
-            "budget": {
-                "budgetAmountMicros": campaign_budget_micros,
-                "budgetUnit": "BUDGET_UNIT_CURRENCY"
-            }
-        },
-        "insertion_order": {
-            "displayName": io_name.strip(),
-            "entityStatus": io_status,
-            "budget": {
-                "budgetSegments": [
-                    {
-                        "budgetAmountMicros": io_budget_micros,
-                        "dateRange": {
-                            "startDate": str(io_start_date),
-                            "endDate": str(io_end_date)
-                        }
-                    }
-                ]
-            },
-            "pacing": {
-                "pacingPeriod": "PACING_PERIOD_DAILY",
-                "pacingType": pacing_type,
-                "dailyMaxMicros": daily_pacing_micros
-            }
-        },
-        "line_item": {
-            "displayName": li_name.strip(),
-            "lineItemType": li_type,
-            "entityStatus": li_status,
-            "flight": {
-                "flightDateType": "LINE_ITEM_FLIGHT_DATE_TYPE_CUSTOM",
-                "dateRange": {
-                    "startDate": str(li_start_date),
-                    "endDate": str(li_end_date)
-                }
-            },
-            "budget": {
-                "budgetAllocationType": "BUDGET_ALLOCATION_TYPE_FIXED",
-                "budgetUnit": "BUDGET_UNIT_CURRENCY",
-                "budgetAmountMicros": li_budget_micros
-            },
-            "bidStrategy": {
-                "fixedBid": {
-                    "bidAmountMicros": bid_micros
-                }
-            },
-            "targeting": {
-                "geo": [g.strip() for g in geo.split(',')],
-                "device": [d.strip() for d in device.split(',')],
-                "language": [l.strip() for l in language.split(',')]
-            }
-        },
-        "creative": {
-            "displayName": creative_name.strip(),
-            "youtubeVideoId": youtube_video_id.strip(),
-            "landingPageUrl": landing_page_url.strip()
-        }
-    }
+# --- Ad Group Tab ---
+with tabs[2]:
+    with st.form("adgroup_form"):
+        st.subheader("Ad Group")
+        adgroup_id = st.text_input("Ad Group ID")
+        li_id = st.text_input("Line Item ID")
+        adgroup_name = st.text_input("Ad Group Name")
+        rotation_type = st.selectbox("Rotation Type", ["Even", "Weighted", "Sequential"])
 
-    json_payload = json.dumps(payload, indent=2)
-    st.success("✅ Payload created successfully!")
-    st.subheader("Simulated DV360 API Payload")
-    st.json(payload)
+        submitted = st.form_submit_button("Add Ad Group")
+        if submitted:
+            st.session_state.adgroup_data.append({
+                "Ad Group Id": adgroup_id,
+                "Line Item Id": li_id,
+                "Ad Group Name": adgroup_name,
+                "Rotation Type": rotation_type
+            })
+            st.success("Ad Group added!")
 
-    st.download_button(
-        label="⬇️ Download JSON",
-        data=json_payload,
-        file_name=f"dv360_payload_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-        mime="application/json"
-    )
+    if st.session_state.adgroup_data:
+        st.dataframe(pd.DataFrame(st.session_state.adgroup_data))
+        csv = pd.DataFrame(st.session_state.adgroup_data).to_csv(index=False).encode('utf-8')
+        st.download_button("Download Ad Group CSV", csv, "AdGroup.csv", "text/csv")
+
+# --- Ad Tab ---
+with tabs[3]:
+    with st.form("ad_form"):
+        st.subheader("Ad")
+        ad_id = st.text_input("Ad ID")
+        adgroup_id = st.text_input("Ad Group ID")
+        ad_name = st.text_input("Ad Name")
+        creative_id = st.text_input("Creative ID")
+        final_url = st.text_input("Final URL")
+
+        submitted = st.form_submit_button("Add Ad")
+        if submitted:
+            st.session_state.ad_data.append({
+                "Ad Id": ad_id,
+                "Ad Group Id": adgroup_id,
+                "Ad Name": ad_name,
+                "Creative Id": creative_id,
+                "Final URL": final_url
+            })
+            st.success("Ad added!")
+
+    if st.session_state.ad_data:
+        st.dataframe(pd.DataFrame(st.session_state.ad_data))
+        csv = pd.DataFrame(st.session_state.ad_data).to_csv(index=False).encode('utf-8')
+        st.download_button("Download Ad CSV", csv, "Ad.csv", "text/csv")
