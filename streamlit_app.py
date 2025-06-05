@@ -13,89 +13,107 @@ tabs = st.tabs(["Insertion Order", "Line Item", "Ad Group", "Ad"])
 
 # --- Insertion Order Tab ---
 with tabs[0]:
+    st.subheader("Edit or Duplicate an Existing Insertion Order")
+
+    # Dropdown to select an existing IO
+    io_options = [f"{i} - {d['Name']}" for i, d in enumerate(st.session_state.io_data)]
+    selected_index = st.selectbox("Select an IO to Edit/Duplicate", ["-- None --"] + io_options)
+
+    edit_data = {}
+    idx = None
+    if selected_index != "-- None --":
+        idx = int(selected_index.split(" - ")[0])
+        edit_data = st.session_state.io_data[idx]
+
+    duplicate_mode = st.checkbox("Save as new (duplicate entry)")
+
     with st.form("io_form"):
         st.subheader("Insertion Order (Full SDF Structure)")
 
         # BASIC INFO
-        io_id = st.text_input("Io Id")
-        campaign_id = st.text_input("Campaign Id")
-        name = st.text_input("Name")
-        timestamp = st.text_input("Timestamp", placeholder="2025-05-23T05:45:51.986000")
-        status = st.selectbox("Status", ["Active", "Paused", "Draft"])
-        io_type = st.text_input("Io Type", placeholder="Standard")
-        io_subtype = st.text_input("Io Subtype", placeholder="Default")
-        io_objective = st.text_input("Io Objective")
+        io_id = st.text_input("Io Id", value=edit_data.get("Io Id", ""))
+        campaign_id = st.text_input("Campaign Id", value=edit_data.get("Campaign Id", ""))
+        name = st.text_input("Name", value=edit_data.get("Name", ""))
+        timestamp = st.text_input("Timestamp", value=edit_data.get("Timestamp", ""))
+        status = st.selectbox("Status", ["Active", "Paused", "Draft"], index=["Active", "Paused", "Draft"].index(edit_data.get("Status", "Paused")))
+        io_type = st.text_input("Io Type", value=edit_data.get("Io Type", ""))
+        io_subtype = st.text_input("Io Subtype", value=edit_data.get("Io Subtype", ""))
+        io_objective = st.text_input("Io Objective", value=edit_data.get("Io Objective", ""))
 
         # FEES / INTEGRATION
-        fees = st.text_area("Fees")
-        integration_code = st.text_input("Integration Code")
-        details = st.text_area("Details")
+        fees = st.text_area("Fees", value=edit_data.get("Fees", ""))
+        integration_code = st.text_input("Integration Code", value=edit_data.get("Integration Code", ""))
+        details = st.text_area("Details", value=edit_data.get("Details", ""))
 
         # PACING & FREQUENCY
-        pacing = st.selectbox("Pacing", ["ASAP", "Even", "Flight", "Ahead"])
-        pacing_rate = st.text_input("Pacing Rate")
-        pacing_amount = st.text_input("Pacing Amount")
-        freq_enabled = st.checkbox("Frequency Enabled")
-        freq_exposures = st.text_input("Frequency Exposures") if freq_enabled else ""
-        freq_period = st.text_input("Frequency Period") if freq_enabled else ""
-        freq_amount = st.text_input("Frequency Amount") if freq_enabled else ""
+        pacing = st.selectbox("Pacing", ["ASAP", "Even", "Flight", "Ahead"], index=["ASAP", "Even", "Flight", "Ahead"].index(edit_data.get("Pacing", "Flight")))
+        pacing_rate = st.text_input("Pacing Rate", value=edit_data.get("Pacing Rate", ""))
+        pacing_amount = st.text_input("Pacing Amount", value=edit_data.get("Pacing Amount", ""))
+        freq_enabled = st.checkbox("Frequency Enabled", value=edit_data.get("Frequency Enabled", False))
+        freq_exposures = st.text_input("Frequency Exposures", value=edit_data.get("Frequency Exposures", "")) if freq_enabled else ""
+        freq_period = st.text_input("Frequency Period", value=edit_data.get("Frequency Period", "")) if freq_enabled else ""
+        freq_amount = st.text_input("Frequency Amount", value=edit_data.get("Frequency Amount", "")) if freq_enabled else ""
 
         # KPI
-        kpi_type = st.text_input("Kpi Type")
-        kpi_value = st.text_input("Kpi Value")
-        kpi_algorithm_id = st.text_input("Kpi Algorithm Id")
+        kpi_type = st.text_input("Kpi Type", value=edit_data.get("Kpi Type", ""))
+        kpi_value = st.text_input("Kpi Value", value=edit_data.get("Kpi Value", ""))
+        kpi_algorithm_id = st.text_input("Kpi Algorithm Id", value=edit_data.get("Kpi Algorithm Id", ""))
 
         # DAR
-        measure_dar = st.checkbox("Measure DAR")
-        measure_dar_channel = st.text_input("Measure DAR Channel")
+        measure_dar = st.checkbox("Measure DAR", value=edit_data.get("Measure DAR", False))
+        measure_dar_channel = st.text_input("Measure DAR Channel", value=edit_data.get("Measure DAR Channel", ""))
 
         # BUDGET
-        budget_type = st.selectbox("Budget Type", ["Amount", "Unlimited"])
-        budget_segments_raw = st.text_area("Budget Segments", placeholder="(9308.0; 05/05/2025; 06/30/2025; ; ;)")
-
-        auto_budget_allocation = st.checkbox("Auto Budget Allocation")
+        budget_type = st.selectbox("Budget Type", ["Amount", "Unlimited"], index=["Amount", "Unlimited"].index(edit_data.get("Budget Type", "Amount")))
+        budget_segments_raw = st.text_area("Budget Segments", value=edit_data.get("Budget Segments", ""))
+        auto_budget_allocation = st.checkbox("Auto Budget Allocation", value=edit_data.get("Auto Budget Allocation", False))
 
         # TARGETING - COMMON
-        geo_include = st.text_area("Geography Targeting - Include", placeholder="DMA codes separated by ;")
-        geo_exclude = st.text_area("Geography Targeting - Exclude")
-        proximity_targeting = st.text_input("Proximity Targeting")
-        proximity_location_list = st.text_input("Proximity Location List Targeting")
-        language_include = st.text_area("Language Targeting - Include")
-        language_exclude = st.text_area("Language Targeting - Exclude")
-        device_include = st.text_area("Device Targeting - Include")
-        device_exclude = st.text_area("Device Targeting - Exclude")
+        geo_include = st.text_area("Geography Targeting - Include", value=edit_data.get("Geography Targeting - Include", ""))
+        geo_exclude = st.text_area("Geography Targeting - Exclude", value=edit_data.get("Geography Targeting - Exclude", ""))
+        proximity_targeting = st.text_input("Proximity Targeting", value=edit_data.get("Proximity Targeting", ""))
+        proximity_location_list = st.text_input("Proximity Location List Targeting", value=edit_data.get("Proximity Location List Targeting", ""))
+        language_include = st.text_area("Language Targeting - Include", value=edit_data.get("Language Targeting - Include", ""))
+        language_exclude = st.text_area("Language Targeting - Exclude", value=edit_data.get("Language Targeting - Exclude", ""))
+        device_include = st.text_area("Device Targeting - Include", value=edit_data.get("Device Targeting - Include", ""))
+        device_exclude = st.text_area("Device Targeting - Exclude", value=edit_data.get("Device Targeting - Exclude", ""))
 
         # BRAND SAFETY
-        digital_content_exclude = st.text_area("Digital Content Labels - Exclude")
-        brand_safety_sensitivity = st.text_input("Brand Safety Sensitivity Setting")
-        brand_safety_custom = st.text_area("Brand Safety Custom Settings")
+        digital_content_exclude = st.text_area("Digital Content Labels - Exclude", value=edit_data.get("Digital Content Labels - Exclude", ""))
+        brand_safety_sensitivity = st.text_input("Brand Safety Sensitivity Setting", value=edit_data.get("Brand Safety Sensitivity Setting", ""))
+        brand_safety_custom = st.text_area("Brand Safety Custom Settings", value=edit_data.get("Brand Safety Custom Settings", ""))
 
         # VERIFICATION
-        third_party_verification = st.text_input("Third Party Verification Services")
-        third_party_labels = st.text_area("Third Party Verification Labels")
+        third_party_verification = st.text_input("Third Party Verification Services", value=edit_data.get("Third Party Verification Services", ""))
+        third_party_labels = st.text_area("Third Party Verification Labels", value=edit_data.get("Third Party Verification Labels", ""))
 
         # AUDIENCE & INVENTORY
-        audience_include = st.text_area("Audience Targeting - Include")
-        audience_exclude = st.text_area("Audience Targeting - Exclude")
-        affinity_include = st.text_area("Affinity & In Market Targeting - Include")
-        affinity_exclude = st.text_area("Affinity & In Market Targeting - Exclude")
-        custom_list = st.text_input("Custom List Targeting")
-        inventory_auth_sellers = st.selectbox("Inventory Source Targeting - Authorized Seller Options", [
-            "All", "Authorized Direct Sellers Only", "Authorized Direct Sellers And Resellers"
-        ])
-        inventory_include = st.text_area("Inventory Source Targeting - Include")
-        inventory_exclude = st.text_area("Inventory Source Targeting - Exclude")
-        inventory_target_new_exchanges = st.checkbox("Inventory Source Targeting - Target New Exchanges")
+        audience_include = st.text_area("Audience Targeting - Include", value=edit_data.get("Audience Targeting - Include", ""))
+        audience_exclude = st.text_area("Audience Targeting - Exclude", value=edit_data.get("Audience Targeting - Exclude", ""))
+        affinity_include = st.text_area("Affinity & In Market Targeting - Include", value=edit_data.get("Affinity & In Market Targeting - Include", ""))
+        affinity_exclude = st.text_area("Affinity & In Market Targeting - Exclude", value=edit_data.get("Affinity & In Market Targeting - Exclude", ""))
+        custom_list = st.text_input("Custom List Targeting", value=edit_data.get("Custom List Targeting", ""))
+        inventory_auth_sellers = st.selectbox(
+            "Inventory Source Targeting - Authorized Seller Options",
+            ["All", "Authorized Direct Sellers Only", "Authorized Direct Sellers And Resellers"],
+            index=["All", "Authorized Direct Sellers Only", "Authorized Direct Sellers And Resellers"].index(
+                edit_data.get("Inventory Source Targeting - Authorized Seller Options", "Authorized Direct Sellers And Resellers")
+            )
+        )
+        inventory_include = st.text_area("Inventory Source Targeting - Include", value=edit_data.get("Inventory Source Targeting - Include", ""))
+        inventory_exclude = st.text_area("Inventory Source Targeting - Exclude", value=edit_data.get("Inventory Source Targeting - Exclude", ""))
+        inventory_target_new_exchanges = st.checkbox("Inventory Source Targeting - Target New Exchanges", value=edit_data.get("Inventory Source Targeting - Target New Exchanges", False))
 
         # FLOOR PRICE
-        apply_floor_price = st.checkbox("Apply Floor Price For Deals")
-        bid_strategy_unit = st.text_input("Bid Strategy Unit")
-        bid_strategy_cap = st.text_input("Bid Strategy Do Not Exceed")
-        algorithm_id = st.text_input("Algorithm Id")
+        apply_floor_price = st.checkbox("Apply Floor Price For Deals", value=edit_data.get("Apply Floor Price For Deals", False))
+        bid_strategy_unit = st.text_input("Bid Strategy Unit", value=edit_data.get("Bid Strategy Unit", ""))
+        bid_strategy_cap = st.text_input("Bid Strategy Do Not Exceed", value=edit_data.get("Bid Strategy Do Not Exceed", ""))
+        algorithm_id = st.text_input("Algorithm Id", value=edit_data.get("Algorithm Id", ""))
 
-        submitted = st.form_submit_button("Add Insertion Order")
+        submitted = st.form_submit_button("Save Insertion Order")
+
         if submitted:
-            st.session_state.io_data.append({
+            new_entry = {
                 "Io Id": io_id,
                 "Campaign Id": campaign_id,
                 "Name": name,
@@ -148,8 +166,14 @@ with tabs[0]:
                 "Bid Strategy Unit": bid_strategy_unit,
                 "Bid Strategy Do Not Exceed": bid_strategy_cap,
                 "Algorithm Id": algorithm_id
-            })
-            st.success("Insertion Order added!")
+            }
+
+            if selected_index != "-- None --" and not duplicate_mode:
+                st.session_state.io_data[idx] = new_entry
+                st.success("Insertion Order updated.")
+            else:
+                st.session_state.io_data.append(new_entry)
+                st.success("Insertion Order added.")
 
     if st.session_state.io_data:
         st.subheader("Preview IO Sheet")
